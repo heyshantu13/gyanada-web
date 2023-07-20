@@ -8,13 +8,22 @@ import mongoose from 'mongoose';
 
 dotenv.config();
 
-mongoose.connect('mongodb://localhost:27017/gyanadaApp')
-  .then(() => {
-    console.log('Connected to MongoDB');
-  })
-  .catch((error) => {
-    console.error('Failed to connect to MongoDB:', error);
-  });
+// Replace 'myDatabase' with the name of your database
+
+// Local MongoDB connection string
+const localConnectionUri = `mongodb+srv://gyanadaApp:gyanadaapp@gyanadaapp.wr38ooy.mongodb.net/?retryWrites=true&w=majority`;
+
+// Create the connection to the database
+mongoose.connect(localConnectionUri);
+
+// Get the default connection
+const db = mongoose.connection;
+
+// Handle connection events
+db.on('error', console.error.bind(console, 'MongoDB connection error:'));
+db.once('open', () => {
+  console.log('Connected to MongoDB database successfully!');
+});
 
 const app = express();
 
