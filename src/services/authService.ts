@@ -1,6 +1,7 @@
 // services/user.service.ts
 
-import User, { IUser } from '../models/user.model';
+import { IUser } from '../interface/IUser';
+import User from '../models/user.model';
 
 export const findUserByEmail = async (email: string): Promise<IUser | null> => {
   // Implement the logic to find a user by their email in the database

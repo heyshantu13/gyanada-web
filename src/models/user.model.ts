@@ -1,13 +1,5 @@
 import mongoose, { Schema, Document } from 'mongoose';
-
-export interface IUser extends Document {
-  fullname: string;
-  email: string;
-  password: string;
-  role: string;
-  token: string;
-  status: boolean;
-}
+import { IUser } from '../interface/IUser';
 
 const userSchema: Schema<IUser> = new Schema({
   fullname: { type: String, required: true },

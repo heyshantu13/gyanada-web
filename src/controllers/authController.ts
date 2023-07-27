@@ -1,8 +1,9 @@
 import { Request, Response } from 'express';
 import bcrypt from 'bcrypt';
-import User, { IUser } from '../models/user.model';
+import User from '../models/user.model';
 import { sendResponse } from '../utils/responseHelper';
 import { _signToken } from '../utils/jwtSign';
+import { IUser } from '../interface/IUser';
 
 const _verifyPassword = async (password: string, hashedPassword: string): Promise<boolean> => {
   return bcrypt.compare(password, hashedPassword);

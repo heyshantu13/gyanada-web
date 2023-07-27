@@ -1,7 +1,8 @@
 import { Request, Response } from 'express';
-import User, { IUser } from '../models/user.model';
+import User from '../models/user.model';
 import { sendResponse } from '../utils/responseHelper';
 import { AuthenticatedRequest } from '../interface/AuthenticatedRequest';
+import { IUser } from '../interface/IUser';
 
 export const myProfile = async (req: AuthenticatedRequest , res: Response): Promise<void> => { 
   try{

@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
-import { IUser } from "../models/user.model";
 // Load environment variables from .env file
 import dotenv from 'dotenv';
+import { IUser } from '../interface/IUser';
 dotenv.config();
 
 type ProcessEnv = {
