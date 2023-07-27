@@ -1,5 +1,3 @@
-// models/user.model.ts
-
 import mongoose, { Schema, Document } from 'mongoose';
 
 export interface IUser extends Document {
@@ -8,6 +6,7 @@ export interface IUser extends Document {
   password: string;
   role: string;
   token: string;
+  status: boolean;
 }
 
 const userSchema: Schema<IUser> = new Schema({
@@ -16,6 +15,7 @@ const userSchema: Schema<IUser> = new Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   role: { type: String, enum: ['agent', 'admin'], default: 'agent' },
+  status: { type: Boolean, default: false } // Set default value to false
 });
 
 const User = mongoose.model<IUser>('User', userSchema);

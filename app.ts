@@ -5,6 +5,7 @@ import bodyParser from 'body-parser';
 import dotenv from 'dotenv';
 import moment from 'moment';
 import mongoose from 'mongoose';
+import webRouter from './src/routes/web.routes'; // Update the path if needed
 
 dotenv.config();
 
@@ -31,6 +32,8 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
+
+app.use('/api/web', webRouter);
 
 // Routes
 app.get('/', (req, res) => {
