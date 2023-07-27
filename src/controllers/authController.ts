@@ -29,7 +29,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     }
 
     const token = _signToken(user);
-    sendResponse(res, true, 'Login successful', { token });
+    sendResponse(res, true, 'Login successful', { token, role: user.role });
   } catch (error) {
     console.error('Error during login:', error);
     sendResponse(res, false, 'An error occurred during login', undefined, 500);
@@ -39,7 +39,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
 // Controller for user signup
 export const signup = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { fullname, email, password } = req.body;
+    const { fullname, email, password, role} = req.body;
 
     // Check if user with the given email already exists
     const existingUser = await User.findOne({ email });
@@ -55,6 +55,7 @@ export const signup = async (req: Request, res: Response): Promise<void> => {
       fullname,
       email,
       password: hashedPassword,
+      role
     });
 
     // Save the user to the database
