@@ -58,7 +58,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"email\":\"demo@gmail.com\",\r\n    \"password\":\"12121212\"\r\n}",
+					"raw": "{\r\n \"email\": \"pankaj@admin.com\",\r\n     \"password\":\"12345678\"\r\n\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -75,6 +75,42 @@
 						"api",
 						"web",
 						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "My Profile",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2NGMyMjllMWI0YmEwYzY0ZDExZjIzMjEiLCJmdWxsbmFtZSI6Ikd5YW5hZGEgQWRtaW4iLCJpYXQiOjE2OTA0NDkyNjIsImV4cCI6MTY5MDYyMjA2Mn0.oQgLpkAg6dubXJiy8rSE5vE7rWYciKryYAai0Y8ePV0",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "localhost:8081/api/web/my-profile",
+					"host": [
+						"localhost"
+					],
+					"port": "8081",
+					"path": [
+						"api",
+						"web",
+						"my-profile"
 					]
 				}
 			},
