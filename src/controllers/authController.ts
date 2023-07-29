@@ -31,7 +31,6 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     const token = _signToken(user);
     sendResponse(res, true, 'Login successful', { token, role: user.role });
   } catch (error) {
-    console.error('Error during login:', error);
     sendResponse(res, false, 'An error occurred during login', undefined, 500);
   }
 };
