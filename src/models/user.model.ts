@@ -7,7 +7,11 @@ const userSchema: Schema<IUser> = new Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   role: { type: String, enum: ['agent', 'admin'], default: 'agent' },
-  status: { type: Boolean, default: false } // Set default value to false
+  status: { type: Boolean, default: true },
+  mobile: { type: String},
+  dateOfBirth: { type: Date },
+  photo: { type: String },
+  address: { type: String, },
 });
 
 const User = mongoose.model<IUser>('User', userSchema);

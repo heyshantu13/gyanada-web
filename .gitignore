@@ -49,3 +49,5 @@ coverage/
 
 # Ignore .env.* files that might contain sensitive information
 # .env.*
+
+/uploads/*
