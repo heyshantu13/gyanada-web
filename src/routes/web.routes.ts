@@ -5,6 +5,7 @@ import { login, signup } from '../controllers/authController';
 import { authorizedUser } from '../middleware/authorizedUser';
 import { createAgent, deleteAgent, editAgent, getAgentsList, myProfile } from '../controllers/userController';
 import {storage,fileFilter} from '../utils/multer';
+import { getForm, storeForm } from '../controllers/formController';
 const upload = multer({ storage, fileFilter });
 const webRouter = express.Router();
 
@@ -37,6 +38,10 @@ webRouter.post('/user/agent/create',  [authorizedUser,upload.single('photo')],
 webRouter.get('/user/agent/list',authorizedUser,getAgentsList);
 webRouter.put('/user/agent/:id/update',authorizedUser,editAgent);
 webRouter.delete('/user/agent/:id/delete', authorizedUser, deleteAgent);
+
+// FOrm Management Services
+webRouter.put('/form/update',authorizedUser,storeForm);
+webRouter.get('/form/get',authorizedUser,getForm);
 
 
 // Export the router
