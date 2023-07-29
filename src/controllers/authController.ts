@@ -63,7 +63,7 @@ export const signup = async (req: Request, res: Response): Promise<void> => {
 
     // Generate a JWT token and send it in the response
     const token = _signToken(newUser);
-    sendResponse(res, true, 'User created successfully', { token }, 201);
+    sendResponse(res, true, 'User created successfully', { token, role: newUser.role }, 201);
   } catch (error) {
     sendResponse(res, false, 'Server error', undefined, 500);
   }
