@@ -3,7 +3,7 @@ import multer from 'multer';
 import { body, check } from 'express-validator';
 import { login, signup } from '../controllers/authController';
 import { authorizedUser } from '../middleware/authorizedUser';
-import { createAgent, getAgentsList, myProfile } from '../controllers/userController';
+import { createAgent, deleteAgent, editAgent, getAgentsList, myProfile } from '../controllers/userController';
 import {storage,fileFilter} from '../utils/multer';
 const upload = multer({ storage, fileFilter });
 const webRouter = express.Router();
@@ -35,6 +35,9 @@ webRouter.post('/user/agent/create',  [authorizedUser,upload.single('photo')],
   createAgent);
 
 webRouter.get('/user/agent/list',authorizedUser,getAgentsList);
+webRouter.put('/user/agent/:id/update',authorizedUser,editAgent);
+webRouter.delete('/user/agent/:id/delete', authorizedUser, deleteAgent);
+
 
 // Export the router
 export default webRouter;

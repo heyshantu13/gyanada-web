@@ -109,3 +109,62 @@ export const getAgentsList = async (req: AuthenticatedRequest, res: Response): P
     sendResponse(res, false, 'Server error', err, 500);
   }
 };
+
+export const editAgent = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params; // Agent ID to be edited
+    const { fullname, email, mobile, dateOfBirth, address } = req.body;
+
+    // Find the agent in the database by ID
+    const agent = await User.findById(id);
+    if (!agent) {
+      return sendResponse(res, false, 'Agent not found', undefined, 404);
+    }
+
+    // Update the agent's information based on the provided fields
+    if (fullname) {
+      agent.fullname = fullname;
+    }
+    if (email) {
+      agent.email = email;
+    }
+    if (mobile) {
+      agent.mobile = mobile;
+    }
+    if (dateOfBirth) {
+      agent.dateOfBirth = moment(dateOfBirth, 'DD/MM/YYYY').toDate();
+    }
+    if (address) {
+      agent.address = address;
+    }
+
+    // Save the updated agent
+    await agent.save();
+
+    sendResponse(res, true, 'Agent updated successfully', agent, 200);
+  } catch (err) {
+    sendResponse(res, false, 'Server error', err, 500);
+  }
+};
+
+export const deleteAgent = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params; // Agent ID to be soft deleted
+
+    // Find the agent in the database by ID
+    const agent = await User.findById(id);
+    if (!agent) {
+      return sendResponse(res, false, 'Agent not found', undefined, 404);
+    }
+
+    // Mark the agent as deleted (soft delete)
+    agent.status = false;
+
+    // Save the updated agent
+    await agent.save();
+
+    sendResponse(res, true, 'Agent deleted successfully', undefined, 200);
+  } catch (err) {
+    sendResponse(res, false, 'Server error', err, 500);
+  }
+};
