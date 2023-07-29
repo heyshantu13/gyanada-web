@@ -6,6 +6,7 @@ import { authorizedUser } from '../middleware/authorizedUser';
 import { createAgent, deleteAgent, editAgent, getAgentsList, myProfile } from '../controllers/userController';
 import {storage,fileFilter} from '../utils/multer';
 import { getForm, storeForm } from '../controllers/formController';
+import { uploadProfile } from '../controllers/uploadController';
 const upload = multer({ storage, fileFilter });
 const webRouter = express.Router();
 
@@ -17,6 +18,7 @@ webRouter.get('/test', (req, res) => {
 webRouter.post('/register',[],signup);
 webRouter.post('/login',[],login);
 
+webRouter.post('/upload/photo',upload.single('file'),uploadProfile)
 // Protected routes
 webRouter.get('/my-profile',authorizedUser,myProfile);
 // agents routes

@@ -102,6 +102,7 @@ export const getAgentsList = async (req: AuthenticatedRequest, res: Response): P
       totalCount,
       currentPage: Number(page),
       nextPage,
+      totalPages, // Add the total pages count to the response
     };
 
     sendResponse(res, true, 'Agent list fetched successfully', response, 200);
