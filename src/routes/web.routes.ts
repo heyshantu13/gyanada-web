@@ -3,10 +3,11 @@ import multer from 'multer';
 import { body, check } from 'express-validator';
 import { login, signup } from '../controllers/authController';
 import { authorizedUser } from '../middleware/authorizedUser';
-import { createAgent, deleteAgent, editAgent, getAgentsList, myProfile } from '../controllers/userController';
+import { createAgent, createStudent, deleteAgent, editAgent, filterStudents, getAgentsList, myProfile } from '../controllers/userController';
 import {storage,fileFilter} from '../utils/multer';
 import { getForm, storeForm } from '../controllers/formController';
 import { uploadProfile } from '../controllers/uploadController';
+import { dashboard } from '../controllers/dashboardController';
 const upload = multer({ storage, fileFilter });
 const webRouter = express.Router();
 
@@ -20,6 +21,7 @@ webRouter.post('/login',[],login);
 
 webRouter.post('/upload/photo',upload.single('file'),uploadProfile)
 // Protected routes
+webRouter.get('/dashboard',authorizedUser,dashboard);
 webRouter.get('/my-profile',authorizedUser,myProfile);
 // agents routes
 webRouter.post('/user/agent/create',  [authorizedUser,upload.single('photo')],
@@ -44,6 +46,11 @@ webRouter.delete('/user/agent/:id/delete', authorizedUser, deleteAgent);
 // FOrm Management Services
 webRouter.put('/form/update',authorizedUser,storeForm);
 webRouter.get('/form/get',authorizedUser,getForm);
+
+// Students
+webRouter.post('/user/student/search',authorizedUser,filterStudents);
+webRouter.post('/user/student/create',authorizedUser,createStudent);
+
 
 
 // Export the router

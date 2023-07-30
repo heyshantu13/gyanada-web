@@ -5,7 +5,9 @@ import bodyParser from 'body-parser';
 import dotenv from 'dotenv';
 import moment from 'moment';
 import mongoose from 'mongoose';
-import webRouter from './src/routes/web.routes'; // Update the path if needed
+import webRouter from './src/routes/web.routes'; 
+import path from 'path';
+import { Student } from './src/models/student.model';
 
 dotenv.config();
 
@@ -32,7 +34,7 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
-
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/api/web', webRouter);
 
 // Routes
@@ -43,5 +45,6 @@ app.get('/', (req, res) => {
 // Start the server
 const port = process.env.PORT || 8081;
 app.listen(port, () => {
+  Student.ensureIndexes();
   console.log(`Server is running on port ${port}`);
 });
