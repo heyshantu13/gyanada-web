@@ -1,13 +1,13 @@
-import express from 'express';
-import cors from 'cors';
-import multer from 'multer';
-import bodyParser from 'body-parser';
-import dotenv from 'dotenv';
-import moment from 'moment';
-import mongoose from 'mongoose';
-import webRouter from './src/routes/web.routes'; 
-import path from 'path';
-import { Student } from './src/models/student.model';
+import express from "express";
+import cors from "cors";
+import multer from "multer";
+import bodyParser from "body-parser";
+import dotenv from "dotenv";
+import moment from "moment";
+import mongoose from "mongoose";
+import webRouter from "./src/routes/web.routes";
+import path from "path";
+import { Student } from "./src/models/student.model";
 
 dotenv.config();
 
@@ -23,23 +23,23 @@ mongoose.connect(localConnectionUri);
 const db = mongoose.connection;
 
 // Handle connection events
-db.on('error', console.error.bind(console, 'MongoDB connection error:'));
-db.once('open', () => {
-  console.log('Connected to MongoDB database successfully!');
+db.on("error", console.error.bind(console, "MongoDB connection error:"));
+db.once("open", () => {
+  console.log("Connected to MongoDB database successfully!");
 });
 
 const app = express();
 
 // Middleware
 app.use(cors());
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json());
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-app.use('/api/web', webRouter);
+app.use(bodyParser.urlencoded({ extended: true, limit: "50mb" }));
+app.use(bodyParser.json({ limit: "50mb" }));
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.use("/api/web", webRouter);
 
 // Routes
-app.get('/', (req, res) => {
-  res.send('Hello, Express.js!');
+app.get("/", (req, res) => {
+  res.send("Hello, Express.js!");
 });
 
 // Start the server
