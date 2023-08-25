@@ -1,15 +1,16 @@
 import { Document } from 'mongoose';
 
 export interface IStudent extends Document {
-  prefix: string;
+  // prefix: string;
   firstname: string;
+  middlename: string;
   lastname: string;
   email: string;
   phone: string;
   address: string;
   city: string;
   pincode: string;
-  dob: Date;
+  dateOfBirth: Date;
   age: number;
   photo: string;
   schoolName: string;
@@ -17,6 +18,7 @@ export interface IStudent extends Document {
   schoolCity: string;
   schoolAddress: string;
   schoolPincode: string;
-  other: {};
   gender: string;
+  storedBy: any;
+  other: {};
 }

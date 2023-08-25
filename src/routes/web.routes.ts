@@ -5,7 +5,7 @@ import { login, signup } from '../controllers/authController';
 import { authorizedUser } from '../middleware/authorizedUser';
 import { createAgent, createStudent, deleteAgent, editAgent, filterStudents, getAgentsList, myProfile } from '../controllers/userController';
 import {storage,fileFilter} from '../utils/multer';
-import { getForm, storeForm } from '../controllers/formController';
+import { getForm, saveStudentData, storeForm } from '../controllers/formController';
 import { uploadProfile } from '../controllers/uploadController';
 import { dashboard } from '../controllers/dashboardController';
 const upload = multer({ storage, fileFilter });
@@ -46,6 +46,8 @@ webRouter.delete('/user/agent/:id/delete', authorizedUser, deleteAgent);
 // FOrm Management Services
 webRouter.put('/form/update',authorizedUser,storeForm);
 webRouter.get('/form/get',authorizedUser,getForm);
+webRouter.post('/form/store', authorizedUser, saveStudentData);
+
 
 // Students
 webRouter.post('/user/student/search',authorizedUser,filterStudents);
