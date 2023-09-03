@@ -29,7 +29,7 @@ db.once("open", () => {
 const app = express();
 
 // Middleware
-app.use(cors());
+app.use(cors({ origin: "*" })); // Allow requests from all origins
 app.use(bodyParser.urlencoded({ extended: true, limit: "50mb" }));
 app.use(bodyParser.json({ limit: "50mb" }));
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
