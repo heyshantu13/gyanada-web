@@ -42,7 +42,7 @@ app.get("/", (req, res) => {
 
 // Start the server
 const ipAddress = "192.168.160.134"; // only for local
-const PORT = process.env.PORT || 9000;
+const PORT = process.env.PORT || 9090;
 
 app.listen(PORT, () => {
   Student.ensureIndexes();
