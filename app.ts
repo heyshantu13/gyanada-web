@@ -44,7 +44,7 @@ app.get("/", (req, res) => {
 
 // Start the server
 const ipAddress = "192.168.160.134";
-const PORT = process.env.PORT || 8082;
+const PORT = process.env.PORT || 8002;
 app.listen(+PORT, ipAddress, () => {
   Student.ensureIndexes();
   console.log(`Server is running on port http://${ipAddress}:${PORT}`);
