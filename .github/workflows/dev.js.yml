@@ -14,16 +14,18 @@ jobs:
         uses: actions/checkout@v2
 
       - name: SSH into your server
-        uses: appleboy/ssh-action@v1
+        uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT }}
-
+          
+      - name: Change directory to /home/ubuntu/dev/backend
+        run: cd ~/dev/backend
+        
       - name: Pull changes from development branch
         run: |
-          cd /home/ubuntu/dev/backend
           git pull origin development
 
       - name: Reload PM2
