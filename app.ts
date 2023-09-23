@@ -11,10 +11,8 @@ import { Student } from "./src/models/student.model";
 
 dotenv.config();
 
-// Replace 'myDatabase' with the name of your database
-
 // Local MongoDB connection string
-const localConnectionUri = `mongodb+srv://gyanadaApp:gyanadaapp@gyanadaapp.wr38ooy.mongodb.net/?retryWrites=true&w=majority`;
+const localConnectionUri = `mongodb://gyanada_sandbox_user:SandboxP%40%24%24w0rd%212%24Secure@ec2-13-232-230-93.ap-south-1.compute.amazonaws.com:27017/gyanada_sandbox`;
 
 // Create the connection to the database
 mongoose.connect(localConnectionUri);
@@ -31,7 +29,7 @@ db.once("open", () => {
 const app = express();
 
 // Middleware
-app.use(cors());
+app.use(cors({ origin: "*" })); // Allow requests from all origins
 app.use(bodyParser.urlencoded({ extended: true, limit: "50mb" }));
 app.use(bodyParser.json({ limit: "50mb" }));
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
@@ -43,9 +41,15 @@ app.get("/", (req, res) => {
 });
 
 // Start the server
-const ipAddress = "192.168.160.134";
-const PORT = process.env.PORT || 8082;
-app.listen(+PORT, ipAddress, () => {
+const ipAddress = "192.168.160.134"; // only for local
+const PORT = process.env.PORT || 8002;
+
+app.listen(PORT, () => {
   Student.ensureIndexes();
-  console.log(`Server is running on port http://${ipAddress}:${PORT}`);
+  console.log(`Server is running on port ${PORT}`);
 });
+
+// app.listen(+PORT, ipAddress, () => {
+//   Student.ensureIndexes();
+//   console.log(`Server is running on port http://${ipAddress}:${PORT}`);
+// });
