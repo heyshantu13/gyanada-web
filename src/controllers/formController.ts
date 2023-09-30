@@ -1,7 +1,10 @@
 import { Request, Response } from "express";
 import Form from "../models/form.model";
 import { sendResponse } from "../utils/responseHelper";
-import { AuthenticatedRequest, DecodedToken } from "../interface/AuthenticatedRequest";
+import {
+  AuthenticatedRequest,
+  DecodedToken,
+} from "../interface/AuthenticatedRequest";
 import { IForm } from "../interface/IForm";
 import jwt from "jsonwebtoken";
 import { error } from "console";
@@ -54,32 +57,28 @@ export const saveStudentData = async (
       other: { ...data?.other },
     });
 
-
     await newStudent.save();
+    // to check file exists
+    if (data.file.length > 0) {
+      const dataBuffer = Buffer.from(data?.file[0]?.url, "base64");
+      // console.log(dataBuffer);
+      const newImage = new StudentImage({
+        studentId: newStudent._id,
+        data: dataBuffer,
+        type: data?.file[0]?.type,
+      });
+      await newImage.save();
+    }
 
-    const dataBuffer = Buffer.from(data?.file[0]?.url, 'base64');
-    // console.log(dataBuffer);
-    const newImage = new StudentImage({
-      studentId: newStudent._id,
-      data: dataBuffer,
-      type: data?.file[0]?.type,
-    });
-
-    // console.log(newImage);
-
-
-    await newImage.save();
-
-    // console.log('Successfully saved');
-    sendResponse(res, true, 'Student Added Succesfully', newStudent, 201);
+    sendResponse(res, true, "Student Added Succesfully", newStudent, 201);
   } catch (err) {
     // error message
-    console.log(err);
-    sendResponse(res, false, 'Server Error', undefined, 500);
-
+    sendResponse(res, false, "Server Error", err, 500);
     return;
   }
 };
+
+
 export const storeForm = async (
   req: AuthenticatedRequest,
   res: Response

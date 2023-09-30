@@ -11,11 +11,14 @@ import { Student } from "./src/models/student.model";
 
 dotenv.config();
 
+// const atEnv =
 // Local MongoDB connection string
-const localConnectionUri = `mongodb://gyanada_sandbox_user:SandboxP%40%24%24w0rd%212%24Secure@ec2-13-232-230-93.ap-south-1.compute.amazonaws.com:27017/gyanada_sandbox`;
+// const localConnectionUri = process.env.DB_CONN;
 
 // Create the connection to the database
-mongoose.connect(localConnectionUri);
+const dbConnection = process.env.DB_CONN || 'mongodb://gyanada_sandbox_user:SandboxP%40%24%24w0rd%212%24Secure@ec2-13-232-230-93.ap-south-1.compute.amazonaws.com:27017/gyanada_sandbox';
+
+mongoose.connect(dbConnection);
 
 // Get the default connection
 const db = mongoose.connection;
@@ -41,15 +44,17 @@ app.get("/", (req, res) => {
 });
 
 // Start the server
-const ipAddress = "192.168.160.134"; // only for local
-const PORT = process.env.PORT || 8002;
+const ipAddress = process.env.LOCAL_IP; // only for local
+const PORT = process.env.PORT || 8081;
 
-app.listen(PORT, () => {
-  Student.ensureIndexes();
-  console.log(`Server is running on port ${PORT}`);
-});
-
-// app.listen(+PORT, ipAddress, () => {
-//   Student.ensureIndexes();
-//   console.log(`Server is running on port http://${ipAddress}:${PORT}`);
-// });
+if (ipAddress) {
+  app.listen(+PORT, ipAddress, () => {
+    Student.ensureIndexes();
+    console.log(`Server is running on port http://${ipAddress}:${PORT}`);
+  });
+} else {
+  app.listen(PORT, () => {
+    Student.ensureIndexes();
+    console.log(`Server is running on port ${PORT}`);
+  });
+}
