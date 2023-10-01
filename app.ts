@@ -13,11 +13,12 @@ dotenv.config();
 
 // const atEnv =
 // Local MongoDB connection string
-// const localConnectionUri = process.env.DB_CONN;
+const dbConnection = 'mongodb://gyanada_sandbox_user:SandboxP%40%24%24w0rd%212%24Secure@ec2-13-232-230-93.ap-south-1.compute.amazonaws.com:27017/gyanada_sandbox';
+
+// local conn str 
+// const localConnStr = "mongodb://localhost:27017"
 
 // Create the connection to the database
-const dbConnection = process.env.DB_CONN || 'mongodb://gyanada_sandbox_user:SandboxP%40%24%24w0rd%212%24Secure@ec2-13-232-230-93.ap-south-1.compute.amazonaws.com:27017/gyanada_sandbox';
-
 mongoose.connect(dbConnection);
 
 // Get the default connection

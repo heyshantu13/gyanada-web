@@ -1,45 +1,66 @@
-import { Request, Response } from 'express';
-import User from '../models/user.model';
-import { sendResponse } from '../utils/responseHelper';
-import { AuthenticatedRequest } from '../interface/AuthenticatedRequest';
-import { IUser } from '../interface/IUser';
-import bcrypt from 'bcrypt';
-import { validationResult } from 'express-validator';
-import moment from 'moment';
-import natural from 'natural';
-import { IStudent } from '../interface/IStudents';
-import { Student } from '../models/student.model';
-const { NlpManager } = require('node-nlp');
+import { Request, Response } from "express";
+import User from "../models/user.model";
+import { sendResponse } from "../utils/responseHelper";
+import { AuthenticatedRequest, DecodedToken } from "../interface/AuthenticatedRequest";
+import { IUser } from "../interface/IUser";
+import bcrypt from "bcrypt";
+import { validationResult } from "express-validator";
+import moment from "moment";
+import natural from "natural";
+import { IStudent } from "../interface/IStudents";
+import { Student } from "../models/student.model";
+const { NlpManager } = require("node-nlp");
+import jwt  from "jsonwebtoken";
+import { SECRET_KEY } from "../const/key";
 
 // import { _signToken } from '../utils/jwtSign';
 
-export const myProfile = async (req: AuthenticatedRequest , res: Response): Promise<void> => { 
-  try{
+export const myProfile = async (
+  req: AuthenticatedRequest,
+  res: Response
+): Promise<void> => {
+  try {
     const user: IUser | null = await User.findById(req.user?.userId);
     if (!user) {
-      return sendResponse(res, false, 'User not found', undefined, 404);
+      return sendResponse(res, false, "User not found", undefined, 404);
     }
-    user.password = '';
-    sendResponse(res, true, 'Profile retrieved successfully', user);
-  }catch(error){
-    sendResponse(res, false, 'An error occurred while fetching user', undefined, 500);
+    user.password = "";
+    sendResponse(res, true, "Profile retrieved successfully", user);
+  } catch (error) {
+    sendResponse(
+      res,
+      false,
+      "An error occurred while fetching user",
+      undefined,
+      500
+    );
   }
 };
 
-export const createAgent = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+export const createAgent = async (
+  req: AuthenticatedRequest,
+  res: Response
+): Promise<void> => {
   try {
     // Validate input fields using express-validator
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return sendResponse(res, false, 'Validation errors', errors.array(), 400);
+      return sendResponse(res, false, "Validation errors", errors.array(), 400);
     }
 
-    const { fullname, email, password, mobile, dateOfBirth, address } = req.body;
+    const { fullname, email, password, mobile, dateOfBirth, address } =
+      req.body;
 
     // Check if user with the given email already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return sendResponse(res, false, 'User with this email already exists', undefined, 400);
+      return sendResponse(
+        res,
+        false,
+        "User with this email already exists",
+        undefined,
+        400
+      );
     }
 
     // Handle the uploaded image if present
@@ -51,40 +72,43 @@ export const createAgent = async (req: AuthenticatedRequest, res: Response): Pro
     // Hash the password before saving it to the database
     const hashedPassword = await bcrypt.hash(password, 8);
     // Convert the dateOfBirth string to a Date object using moment.js
-    const dob = moment(dateOfBirth, 'DD/MM/YYYY').toDate();
+    const dob = moment(dateOfBirth, "DD/MM/YYYY").toDate();
 
     // Create a new user object
     const newAgent: IUser = new User({
       fullname,
       email,
       password: hashedPassword,
-      role: 'agent', // Assuming agents are always created as "agents"
+      role: "agent", // Assuming agents are always created as "agents"
       status: true,
       mobile,
-      dateOfBirth:dob,
+      dateOfBirth: dob,
       photo,
       address,
     });
 
     // Save the agent to the database
-    const agentResult =  await newAgent.save();
-    agentResult.password = '<>';
-    sendResponse(res, true, 'Agent created successfully', agentResult, 201);
+    const agentResult = await newAgent.save();
+    agentResult.password = "<>";
+    sendResponse(res, true, "Agent created successfully", agentResult, 201);
     return;
   } catch (err) {
-    sendResponse(res, false, 'Server error', err, 500);
+    sendResponse(res, false, "Server error", err, 500);
   }
 };
 
-export const getAgentsList = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+export const getAgentsList = async (
+  req: AuthenticatedRequest,
+  res: Response
+): Promise<void> => {
   try {
-    const { page = 1, limit = 10, search = '' } = req.query;
+    const { page = 1, limit = 10, search = "" } = req.query;
     //case-insensitive search
-    const searchRegex = new RegExp(search as string, 'i');
-    // Calculate the skip 
+    const searchRegex = new RegExp(search as string, "i");
+    // Calculate the skip
     const skip = (Number(page) - 1) * Number(limit);
     const query: any = {
-      role: 'agent',
+      role: "agent",
       $or: [
         { fullname: { $regex: searchRegex } },
         { email: { $regex: searchRegex } },
@@ -100,7 +124,7 @@ export const getAgentsList = async (req: AuthenticatedRequest, res: Response): P
     const agents = await User.find(query)
       .skip(skip)
       .limit(Number(limit))
-      .select('-password'); 
+      .select("-password");
 
     const response = {
       agents,
@@ -110,13 +134,16 @@ export const getAgentsList = async (req: AuthenticatedRequest, res: Response): P
       totalPages, // Add the total pages count to the response
     };
 
-    sendResponse(res, true, 'Agent list fetched successfully', response, 200);
+    sendResponse(res, true, "Agent list fetched successfully", response, 200);
   } catch (err) {
-    sendResponse(res, false, 'Server error', err, 500);
+    sendResponse(res, false, "Server error", err, 500);
   }
 };
 
-export const editAgent = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+export const editAgent = async (
+  req: AuthenticatedRequest,
+  res: Response
+): Promise<void> => {
   try {
     const { id } = req.params; // Agent ID to be edited
     const { fullname, email, mobile, dateOfBirth, address } = req.body;
@@ -124,7 +151,7 @@ export const editAgent = async (req: AuthenticatedRequest, res: Response): Promi
     // Find the agent in the database by ID
     const agent = await User.findById(id);
     if (!agent) {
-      return sendResponse(res, false, 'Agent not found', undefined, 404);
+      return sendResponse(res, false, "Agent not found", undefined, 404);
     }
 
     // Update the agent's information based on the provided fields
@@ -138,7 +165,7 @@ export const editAgent = async (req: AuthenticatedRequest, res: Response): Promi
       agent.mobile = mobile;
     }
     if (dateOfBirth) {
-      agent.dateOfBirth = moment(dateOfBirth, 'DD/MM/YYYY').toDate();
+      agent.dateOfBirth = moment(dateOfBirth, "DD/MM/YYYY").toDate();
     }
     if (address) {
       agent.address = address;
@@ -147,20 +174,23 @@ export const editAgent = async (req: AuthenticatedRequest, res: Response): Promi
     // Save the updated agent
     await agent.save();
 
-    sendResponse(res, true, 'Agent updated successfully', agent, 200);
+    sendResponse(res, true, "Agent updated successfully", agent, 200);
   } catch (err) {
-    sendResponse(res, false, 'Server error', err, 500);
+    sendResponse(res, false, "Server error", err, 500);
   }
 };
 
-export const deleteAgent = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+export const deleteAgent = async (
+  req: AuthenticatedRequest,
+  res: Response
+): Promise<void> => {
   try {
     const { id } = req.params; // Agent ID to be soft deleted
 
     // Find the agent in the database by ID
     const agent = await User.findById(id);
     if (!agent) {
-      return sendResponse(res, false, 'Agent not found', undefined, 404);
+      return sendResponse(res, false, "Agent not found", undefined, 404);
     }
 
     // Mark the agent as deleted (soft delete)
@@ -169,14 +199,16 @@ export const deleteAgent = async (req: AuthenticatedRequest, res: Response): Pro
     // Save the updated agent
     await agent.save();
 
-    sendResponse(res, true, 'Agent deleted successfully', undefined, 200);
+    sendResponse(res, true, "Agent deleted successfully", undefined, 200);
   } catch (err) {
-    sendResponse(res, false, 'Server error', err, 500);
+    sendResponse(res, false, "Server error", err, 500);
   }
 };
 
-
-export const createStudent = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+export const createStudent = async (
+  req: AuthenticatedRequest,
+  res: Response
+): Promise<void> => {
   try {
     // Extract the student data from req.body
     const {
@@ -199,7 +231,7 @@ export const createStudent = async (req: AuthenticatedRequest, res: Response): P
       other,
       gender,
     } = req.body;
-  
+
     // Create a new student object using the extracted data
     const newStudent: IStudent = new Student({
       prefix,
@@ -221,17 +253,110 @@ export const createStudent = async (req: AuthenticatedRequest, res: Response): P
       other,
       gender,
     });
-  
+
     // Save the new student to the database
     const savedStudent = await newStudent.save();
 
     res.status(201).json(savedStudent);
   } catch (error) {
-    console.error('Error creating student:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    console.error("Error creating student:", error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 };
 
+interface QueryParameters {
+  page?: string;
+  limit?: string;
+  search?: string;
+  selectedFilter?: string;
+  filterValue?: string;
+}
+
+export const searchAndFilterStudents = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const {
+      page = "1",
+      limit = "10",
+      search = "",
+      selectedFilter = "",
+      filterValue = "",
+    } = req.query as QueryParameters;
+
+    const searchRegex = new RegExp(search as string, "i");
+    const filterValueRegex = new RegExp(filterValue as string, "i");
+
+    const skip = (Number(page) - 1) * Number(limit);
+
+    // Build the query for dynamic filtering
+    const query: any = {
+      $or: [
+        { firstname: { $regex: searchRegex } },
+        { lastname: { $regex: searchRegex } },
+        { email: { $regex: searchRegex } },
+      ],
+    };
+
+    // Apply dynamic filter if a field is selected
+    if (selectedFilter && filterValue) {
+      query[selectedFilter] = { $regex: filterValueRegex };
+    }
+
+    // console.log(query);
+
+    const totalCount = await Student.countDocuments(query);
+    const totalPages = Math.ceil(totalCount / Number(limit));
+    const nextPage = Number(page) < totalPages ? Number(page) + 1 : null;
+
+    const students = await Student.find(query).skip(skip).limit(Number(limit));
+
+    const response = {
+      students,
+      totalCount,
+      currentPage: Number(page),
+      nextPage,
+      totalPages,
+    };
+
+    res.json({ success: true, data: response });
+    // res.json({ success: true, data: "Success" });
+  } catch (err) {
+    res.status(500).json({ success: false, error: "Server error" });
+  }
+};
+
+// New student filter
+
+export const getStudentHistory = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const time = new Date();
+    time.setHours(time.getHours() - 24);
+    const token = req.header('Authorization');
+    if (!token) {
+      sendResponse(res, false, 'Unauthorized Access! Empty Token', undefined, 401);
+      return;
+    }
+
+    const decoded = jwt.verify(token, SECRET_KEY) as DecodedToken;
+    // console.log(decoded.userId);
+    const filter = {
+      createdAt:{
+        $gte : time
+      },
+      storedBy: decoded.userId
+    };
+    const recent = await Student.find(filter);
+    const total = await Student.find({storedBy: decoded.userId});
+    res.json({ success: true, recent, total });
+  } catch (error) {
+    res.status(500).json({ success: false, error: "Server error" });
+  }
+};
 
 /* V1
 export const filterStudents = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
@@ -311,8 +436,10 @@ export const filterStudents = async (req: AuthenticatedRequest, res: Response): 
 
 */
 
-
-export const filterStudents = async (req: Request, res: Response): Promise<void> => {
+export const filterStudents = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   const { query } = req.body;
 
   // Tokenize the user query using natural NLP library
@@ -322,17 +449,17 @@ export const filterStudents = async (req: Request, res: Response): Promise<void>
 
   // Define a map of operators and their corresponding MongoDB query operators
   const operatorsMap: { [key: string]: string } = {
-    greater: '$gt',
-    less: '$lt',
-    equal: '$eq',
-    more: '$gt',
-    is: '$eq',
-    from: '$eq',
+    greater: "$gt",
+    less: "$lt",
+    equal: "$eq",
+    more: "$gt",
+    is: "$eq",
+    from: "$eq",
   };
 
   // Helper function to find the index of a token in the query
   const findTokenIndex = (token: string): number => {
-    return tokens.findIndex(t => t.toLowerCase() === token.toLowerCase());
+    return tokens.findIndex((t) => t.toLowerCase() === token.toLowerCase());
   };
 
   // Initialize the MongoDB query object
@@ -343,168 +470,186 @@ export const filterStudents = async (req: Request, res: Response): Promise<void>
     const token = tokens[i].toLowerCase();
 
     // Handle "all" students query
-    if (token === 'all') {
+    if (token === "all") {
       try {
         const allStudents = await Student.find({});
         res.json(allStudents);
       } catch (error) {
         console.error(error);
-        res.status(500).json({ error: 'Internal Server Error' });
+        res.status(500).json({ error: "Internal Server Error" });
       }
       return;
     }
 
     // Handle query based on token
     switch (token) {
-      case 'students':
+      case "students":
         // Skip the keyword "students"
         break;
-      case 'female':
-        queryObj['gender'] = 'female';
+      case "female":
+        queryObj["gender"] = "female";
         break;
-      case 'male':
-        queryObj['gender'] = 'male';
+      case "male":
+        queryObj["gender"] = "male";
         break;
-      case 'email': {
-        const cityIndex = findTokenIndex('city');
+      case "email": {
+        const cityIndex = findTokenIndex("city");
         if (cityIndex !== -1 && cityIndex + 1 < tokens.length) {
           const city = tokens[cityIndex + 1];
-          queryObj['email'] = { $exists: true };
-          queryObj['city'] = city;
+          queryObj["email"] = { $exists: true };
+          queryObj["city"] = city;
         }
         break;
       }
-      case 'with': {
-        const firstnameIndex = findTokenIndex('names');
-        const prefixIndex = findTokenIndex('prefix');
-        const patternIndex = findTokenIndex('pattern');
-        const ageIndex = findTokenIndex('age');
-        const dobIndex = findTokenIndex('dob');
-        const studentClassIndex = findTokenIndex('class');
-        const otherIndex = findTokenIndex('additional');
-        const photoIndex = findTokenIndex('photo');
-        const nameIndex = findTokenIndex('name');
-        const lastnameIndex = findTokenIndex('names');
+      case "with": {
+        const firstnameIndex = findTokenIndex("names");
+        const prefixIndex = findTokenIndex("prefix");
+        const patternIndex = findTokenIndex("pattern");
+        const ageIndex = findTokenIndex("age");
+        const dobIndex = findTokenIndex("dob");
+        const studentClassIndex = findTokenIndex("class");
+        const otherIndex = findTokenIndex("additional");
+        const photoIndex = findTokenIndex("photo");
+        const nameIndex = findTokenIndex("name");
+        const lastnameIndex = findTokenIndex("names");
 
         if (firstnameIndex !== -1 && firstnameIndex + 1 < tokens.length) {
           const firstname = tokens[firstnameIndex + 1];
-          queryObj['firstname'] = { $regex: new RegExp(`^${firstname}`, 'i') };
+          queryObj["firstname"] = { $regex: new RegExp(`^${firstname}`, "i") };
         } else if (prefixIndex !== -1 && prefixIndex + 1 < tokens.length) {
           const prefix = tokens[prefixIndex + 1];
-          queryObj['firstname'] = { $regex: new RegExp(`^${prefix}`, 'i') };
+          queryObj["firstname"] = { $regex: new RegExp(`^${prefix}`, "i") };
         } else if (patternIndex !== -1 && patternIndex + 1 < tokens.length) {
           const pattern = tokens[patternIndex + 1];
-          queryObj['phone'] = { $regex: new RegExp(pattern, 'i') };
+          queryObj["phone"] = { $regex: new RegExp(pattern, "i") };
         } else if (ageIndex !== -1 && ageIndex + 2 < tokens.length) {
           const operator = tokens[ageIndex + 1];
           const value = parseInt(tokens[ageIndex + 2]);
-          if (!isNaN(value) && operator in operatorsMap && operatorsMap[operator] === '$gt') {
-            queryObj['age'] = { [operatorsMap[operator]]: value };
+          if (
+            !isNaN(value) &&
+            operator in operatorsMap &&
+            operatorsMap[operator] === "$gt"
+          ) {
+            queryObj["age"] = { [operatorsMap[operator]]: value };
           }
         } else if (dobIndex !== -1 && dobIndex + 1 < tokens.length) {
           const dob = new Date(tokens[dobIndex + 1]);
           if (!isNaN(dob.getTime())) {
-            queryObj['dob'] = { $gt: dob };
+            queryObj["dob"] = { $gt: dob };
           }
-        } else if (studentClassIndex !== -1 && studentClassIndex + 1 < tokens.length) {
+        } else if (
+          studentClassIndex !== -1 &&
+          studentClassIndex + 1 < tokens.length
+        ) {
           const studentClass = tokens[studentClassIndex + 1];
-          queryObj['studentClass'] = studentClass;
+          queryObj["studentClass"] = studentClass;
         } else if (otherIndex !== -1) {
-          queryObj['other'] = { $exists: true };
+          queryObj["other"] = { $exists: true };
         } else if (photoIndex !== -1) {
-          queryObj['photo'] = { $exists: true };
+          queryObj["photo"] = { $exists: true };
         } else if (nameIndex !== -1 && nameIndex + 2 < tokens.length) {
           const name = tokens[nameIndex + 2];
-          const cityIndex = findTokenIndex('city');
+          const cityIndex = findTokenIndex("city");
           if (cityIndex !== -1 && cityIndex + 1 < tokens.length) {
             const city = tokens[cityIndex + 1];
-            queryObj['name'] = { $regex: new RegExp(name, 'i') };
-            queryObj['city'] = city;
+            queryObj["name"] = { $regex: new RegExp(name, "i") };
+            queryObj["city"] = city;
           }
         } else if (lastnameIndex !== -1 && lastnameIndex + 1 < tokens.length) {
           const lastname = tokens[lastnameIndex + 1];
-          const ageIndex = findTokenIndex('age');
+          const ageIndex = findTokenIndex("age");
           if (ageIndex !== -1 && ageIndex + 2 < tokens.length) {
             const operator = tokens[ageIndex + 1];
             const value = parseInt(tokens[ageIndex + 2]);
-            if (!isNaN(value) && operator in operatorsMap && operatorsMap[operator] === '$lt') {
-              queryObj['age'] = { [operatorsMap[operator]]: value };
-              queryObj['lastname'] = { $regex: new RegExp(`^${lastname}`, 'i') };
+            if (
+              !isNaN(value) &&
+              operator in operatorsMap &&
+              operatorsMap[operator] === "$lt"
+            ) {
+              queryObj["age"] = { [operatorsMap[operator]]: value };
+              queryObj["lastname"] = {
+                $regex: new RegExp(`^${lastname}`, "i"),
+              };
             }
           }
         }
         break;
       }
-      case 'from': {
-        const cityIndex = findTokenIndex('city');
-        const schoolNameIndex = findTokenIndex('school');
-        const pincodeIndex = findTokenIndex('pincode');
+      case "from": {
+        const cityIndex = findTokenIndex("city");
+        const schoolNameIndex = findTokenIndex("school");
+        const pincodeIndex = findTokenIndex("pincode");
         if (cityIndex !== -1 && cityIndex + 1 < tokens.length) {
           const city = tokens[cityIndex + 1];
-          queryObj['city'] = city;
-        } else if (schoolNameIndex !== -1 && schoolNameIndex + 1 < tokens.length) {
+          queryObj["city"] = city;
+        } else if (
+          schoolNameIndex !== -1 &&
+          schoolNameIndex + 1 < tokens.length
+        ) {
           const schoolName = tokens[schoolNameIndex + 1];
-          queryObj['schoolName'] = { $in: [schoolName, `${schoolName} college`] };
+          queryObj["schoolName"] = {
+            $in: [schoolName, `${schoolName} college`],
+          };
         } else if (pincodeIndex !== -1 && pincodeIndex + 1 < tokens.length) {
           const pincode = tokens[pincodeIndex + 1];
-          queryObj['pincode'] = pincode;
+          queryObj["pincode"] = pincode;
         }
         break;
       }
-      case 'and': {
-        const pincodeIndex = findTokenIndex('pincode');
-        const studentClassIndex = findTokenIndex('class');
-        const ageIndex = findTokenIndex('age');
-        const emailIndex = findTokenIndex('email');
-        const phoneIndex = findTokenIndex('pattern');
+      case "and": {
+        const pincodeIndex = findTokenIndex("pincode");
+        const studentClassIndex = findTokenIndex("class");
+        const ageIndex = findTokenIndex("age");
+        const emailIndex = findTokenIndex("email");
+        const phoneIndex = findTokenIndex("pattern");
 
         if (pincodeIndex !== -1 && pincodeIndex + 1 < tokens.length) {
           const pincode = tokens[pincodeIndex + 1];
-          queryObj['pincode'] = pincode;
+          queryObj["pincode"] = pincode;
         }
 
         if (studentClassIndex !== -1 && studentClassIndex + 1 < tokens.length) {
           const studentClass = tokens[studentClassIndex + 1];
-          queryObj['studentClass'] = studentClass;
+          queryObj["studentClass"] = studentClass;
         }
 
         if (ageIndex !== -1 && ageIndex + 2 < tokens.length) {
           const operator = tokens[ageIndex + 1];
           const value = parseInt(tokens[ageIndex + 2]);
           if (!isNaN(value) && operator in operatorsMap) {
-            queryObj['age'] = { [operatorsMap[operator]]: value };
+            queryObj["age"] = { [operatorsMap[operator]]: value };
           }
         }
 
         if (emailIndex !== -1) {
-          queryObj['email'] = { $exists: true };
+          queryObj["email"] = { $exists: true };
         }
 
         if (phoneIndex !== -1 && phoneIndex + 1 < tokens.length) {
           const pattern = tokens[phoneIndex + 1];
-          queryObj['phone'] = { $regex: new RegExp(`^${pattern}`, 'i') };
+          queryObj["phone"] = { $regex: new RegExp(`^${pattern}`, "i") };
         }
 
         break;
       }
-      case 'or': {
-        const cityIndex = findTokenIndex('city');
-        const schoolCityIndex = findTokenIndex('schoolcity');
-        const studentClassIndex = findTokenIndex('class');
+      case "or": {
+        const cityIndex = findTokenIndex("city");
+        const schoolCityIndex = findTokenIndex("schoolcity");
+        const studentClassIndex = findTokenIndex("class");
 
         if (cityIndex !== -1 && cityIndex + 1 < tokens.length) {
           const city = tokens[cityIndex + 1];
-          queryObj['city'] = city;
+          queryObj["city"] = city;
         }
 
         if (schoolCityIndex !== -1 && schoolCityIndex + 1 < tokens.length) {
           const schoolCity = tokens[schoolCityIndex + 1];
-          queryObj['schoolCity'] = schoolCity;
+          queryObj["schoolCity"] = schoolCity;
         }
 
         if (studentClassIndex !== -1 && studentClassIndex + 1 < tokens.length) {
           const studentClass = tokens[studentClassIndex + 1];
-          queryObj['studentClass'] = studentClass;
+          queryObj["studentClass"] = studentClass;
         }
 
         break;
@@ -516,15 +661,14 @@ export const filterStudents = async (req: Request, res: Response): Promise<void>
 
   try {
     // Execute the MongoDB query
-    console.log(queryObj, 'queryObj');
+    console.log(queryObj, "queryObj");
     const results = await Student.find(queryObj);
     res.json(results);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ error: "Internal Server Error" });
   }
 };
-
 
 // export const filterStudents = async (req: Request, res: Response): Promise<void> => {
 //   const { query } = req.body;

@@ -3,7 +3,7 @@ import multer from 'multer';
 import { body, check } from 'express-validator';
 import { login, signup } from '../controllers/authController';
 import { authorizedUser } from '../middleware/authorizedUser';
-import { createAgent, createStudent, deleteAgent, editAgent, filterStudents, getAgentsList, myProfile } from '../controllers/userController';
+import { createAgent, createStudent, deleteAgent, editAgent, filterStudents, getAgentsList, getStudentHistory, myProfile, searchAndFilterStudents } from '../controllers/userController';
 import {storage,fileFilter} from '../utils/multer';
 import { getForm, saveStudentData, storeForm } from '../controllers/formController';
 import { uploadProfile } from '../controllers/uploadController';
@@ -50,8 +50,10 @@ webRouter.post('/form/store', authorizedUser, saveStudentData);
 
 
 // Students
-webRouter.post('/user/student/search',authorizedUser,filterStudents);
-webRouter.post('/user/student/create',authorizedUser,createStudent);
+webRouter.post('/user/student/search', authorizedUser, filterStudents);
+webRouter.post('/user/student/create', authorizedUser, createStudent);
+webRouter.get('/user/student',authorizedUser, searchAndFilterStudents);
+webRouter.get('/user/student/history',authorizedUser, getStudentHistory);
 
 
 
