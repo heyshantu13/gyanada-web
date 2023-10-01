@@ -7,7 +7,7 @@ import bcrypt from "bcrypt";
 import { validationResult } from "express-validator";
 import moment from "moment";
 import natural from "natural";
-import { IStudent } from "../interface/IStudents";
+import { IStudent, QueryParameters, StudentHistoryQuery } from "../interface/IStudents";
 import { Student } from "../models/student.model";
 const { NlpManager } = require("node-nlp");
 import jwt  from "jsonwebtoken";
@@ -264,13 +264,7 @@ export const createStudent = async (
   }
 };
 
-interface QueryParameters {
-  page?: string;
-  limit?: string;
-  search?: string;
-  selectedFilter?: string;
-  filterValue?: string;
-}
+
 
 export const searchAndFilterStudents = async (
   req: Request,
@@ -327,13 +321,21 @@ export const searchAndFilterStudents = async (
   }
 };
 
-// New student filter
+
+// Define an interface for query parameters
+
 
 export const getStudentHistory = async (
   req: Request,
   res: Response
 ): Promise<void> => {
   try {
+    const { page = 1, limit = 10 } = req.query;
+    //case-insensitive search
+    // Calculate the skip
+    const skip = (Number(page) - 1) * Number(limit);
+
+    
     const time = new Date();
     time.setHours(time.getHours() - 24);
     const token = req.header('Authorization');
@@ -343,20 +345,36 @@ export const getStudentHistory = async (
     }
 
     const decoded = jwt.verify(token, SECRET_KEY) as DecodedToken;
-    // console.log(decoded.userId);
-    const filter = {
-      createdAt:{
-        $gte : time
+    const query: any = {
+      createdAt: {
+        $gte: time
       },
       storedBy: decoded.userId
     };
-    const recent = await Student.find(filter);
-    const total = await Student.find({storedBy: decoded.userId});
-    res.json({ success: true, recent, total });
-  } catch (error) {
-    res.status(500).json({ success: false, error: "Server error" });
+    const totalCount = await Student.countDocuments(query);
+    // Calculate the total number of pages based
+    const totalPages = Math.ceil(totalCount / Number(limit));
+    // Calculate the next page
+    const nextPage = Number(page) < totalPages ? Number(page) + 1 : null;
+    // Fetch the agents
+    const students = await Student.find(query)
+      .skip(skip)
+      .limit(Number(limit));
+
+    const response = {
+      students,
+      totalCount,
+      currentPage: Number(page),
+      nextPage,
+      totalPages, // Add the total pages count to the response
+    };
+
+    sendResponse(res, true, "Students list fetched successfully", response, 200);
+  } catch (err) {
+    sendResponse(res, false, "Server error", err, 500);
   }
 };
+
 
 /* V1
 export const filterStudents = async (req: AuthenticatedRequest, res: Response): Promise<void> => {

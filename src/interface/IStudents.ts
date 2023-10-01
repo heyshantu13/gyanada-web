@@ -1,4 +1,4 @@
-import { Document } from 'mongoose';
+import { Document } from "mongoose";
 
 export interface IStudent extends Document {
   // prefix: string;
@@ -21,4 +21,17 @@ export interface IStudent extends Document {
   gender: string;
   storedBy: any;
   other: {};
+}
+
+export interface QueryParameters {
+  page?: string;
+  limit?: string;
+  search?: string;
+  selectedFilter?: string;
+  filterValue?: string;
+}
+
+export interface StudentHistoryQuery {
+  page: number;
+  pageSize: number;
 }
