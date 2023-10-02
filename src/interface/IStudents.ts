@@ -12,7 +12,7 @@ export interface IStudent extends Document {
   pincode: string;
   dateOfBirth: Date;
   age: number;
-  photo: string;
+  // photo: string;
   schoolName: string;
   studentClass: string;
   schoolCity: string;

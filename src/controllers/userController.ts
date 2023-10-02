@@ -1,17 +1,25 @@
 import { Request, Response } from "express";
 import User from "../models/user.model";
 import { sendResponse } from "../utils/responseHelper";
-import { AuthenticatedRequest, DecodedToken } from "../interface/AuthenticatedRequest";
+import {
+  AuthenticatedRequest,
+  DecodedToken,
+} from "../interface/AuthenticatedRequest";
 import { IUser } from "../interface/IUser";
 import bcrypt from "bcrypt";
 import { validationResult } from "express-validator";
 import moment from "moment";
 import natural from "natural";
-import { IStudent, QueryParameters, StudentHistoryQuery } from "../interface/IStudents";
+import {
+  IStudent,
+  QueryParameters,
+  StudentHistoryQuery,
+} from "../interface/IStudents";
 import { Student } from "../models/student.model";
 const { NlpManager } = require("node-nlp");
-import jwt  from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 import { SECRET_KEY } from "../const/key";
+import StudentImage from "../models/image.model";
 
 // import { _signToken } from '../utils/jwtSign';
 
@@ -264,8 +272,6 @@ export const createStudent = async (
   }
 };
 
-
-
 export const searchAndFilterStudents = async (
   req: Request,
   res: Response
@@ -314,16 +320,14 @@ export const searchAndFilterStudents = async (
       totalPages,
     };
 
-    res.json({ success: true, data: response });
+    res.status(200).json({ success: true, data: response });
     // res.json({ success: true, data: "Success" });
   } catch (err) {
     res.status(500).json({ success: false, error: "Server error" });
   }
 };
 
-
 // Define an interface for query parameters
-
 
 export const getStudentHistory = async (
   req: Request,
@@ -335,21 +339,26 @@ export const getStudentHistory = async (
     // Calculate the skip
     const skip = (Number(page) - 1) * Number(limit);
 
-    
     const time = new Date();
     time.setHours(time.getHours() - 24);
-    const token = req.header('Authorization');
+    const token = req.header("Authorization");
     if (!token) {
-      sendResponse(res, false, 'Unauthorized Access! Empty Token', undefined, 401);
+      sendResponse(
+        res,
+        false,
+        "Unauthorized Access! Empty Token",
+        undefined,
+        401
+      );
       return;
     }
 
     const decoded = jwt.verify(token, SECRET_KEY) as DecodedToken;
     const query: any = {
       createdAt: {
-        $gte: time
+        $gte: time,
       },
-      storedBy: decoded.userId
+      storedBy: decoded.userId,
     };
     const totalCount = await Student.countDocuments(query);
     // Calculate the total number of pages based
@@ -357,9 +366,7 @@ export const getStudentHistory = async (
     // Calculate the next page
     const nextPage = Number(page) < totalPages ? Number(page) + 1 : null;
     // Fetch the agents
-    const students = await Student.find(query)
-      .skip(skip)
-      .limit(Number(limit));
+    const students = await Student.find(query).skip(skip).limit(Number(limit));
 
     const response = {
       students,
@@ -369,12 +376,40 @@ export const getStudentHistory = async (
       totalPages, // Add the total pages count to the response
     };
 
-    sendResponse(res, true, "Students list fetched successfully", response, 200);
+    sendResponse(
+      res,
+      true,
+      "Students list fetched successfully",
+      response,
+      200
+    );
   } catch (err) {
     sendResponse(res, false, "Server error", err, 500);
   }
 };
 
+export const getStudentsImage = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const { id } = req.params;
+    if (!id) {
+      res.status(500).json({ success: false, message: "Invalid Id" });
+      return;
+    }
+    // check student for given id
+    const student = await Student.findById(id);
+    if (!student) {
+      res.status(500).json({ success: false, message: "Invalid Id" });
+      return;
+    }
+    const image = await StudentImage.findOne({ studentId: id });
+    sendResponse(res, true, "Students image fetched successfully", image, 200);
+  } catch (error) {
+    res.status(500).json({ success: false, error });
+  }
+};
 
 /* V1
 export const filterStudents = async (req: AuthenticatedRequest, res: Response): Promise<void> => {

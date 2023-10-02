@@ -13,7 +13,7 @@ const studentSchema: Schema<IStudent> = new Schema(
     pincode: String,
     dateOfBirth: Date,
     age: Number,
-    photo: String,
+    gender: String,
     schoolName: String,
     studentClass: String,
     schoolCity: String,
