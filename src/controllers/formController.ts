@@ -21,6 +21,7 @@ export const saveStudentData = async (
   try {
     // const { basicDetails, contactDetails, educationalDetails, other } = req.body.data.form;
     const data = req.body.data.form;
+    // console.log(data.basicDetails.gender);
     const token = req.header("Authorization") || false;
     if (!token)
       return sendResponse(
@@ -46,17 +47,17 @@ export const saveStudentData = async (
         "DD/MM/YYYY"
       ).toDate(),
       age: data?.basicDetails?.age,
-      photo: data?.educationalDetails?.schoolName,
       schoolName: data?.educationalDetails?.schoolName,
       studentClass: data?.educationalDetails?.studentClass,
       schoolCity: data?.educationalDetails?.schoolCity,
       schoolAddress: data?.educationalDetails?.schoolAddress,
-      schoolPincode: data?.educationalDetails?.schoolPincode,
+      schoolPincode: data?.educationalDetails?.schoolPin,
       gender: data?.basicDetails?.gender,
       storedBy: decoded?.userId,
       other: { ...data?.other },
     });
 
+    // console.log(newStudent);
     await newStudent.save();
     // to check file exists
     if (data.file.length > 0) {
@@ -68,6 +69,7 @@ export const saveStudentData = async (
         type: data?.file[0]?.type,
       });
       await newImage.save();
+      // console.log(newImage);
     }
 
     sendResponse(res, true, "Student Added Succesfully", newStudent, 201);
